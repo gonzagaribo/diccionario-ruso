@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diccionario ruso</title>
+  <style>
+    body {
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 0.5rem;
+      text-align: center;
+      color: #3a3a3a;
+    }
+    #alphabet {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      padding: 0.5rem;
+      overflow-y: auto;
+    }
+    .letter-btn {
+      background: #ff7979;
+      color: white;
+      font-size: 1.8rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 48px;
+    }
+    .letter-btn:hover {
+      background: #d65a5a;
+    }
+    #word-list {
+      background: white;
+      padding: 1rem;
+      border-top: 2px solid #ff7979;
+      max-height: 35vh;
+      overflow-y: auto;
+    }
+    #word-list h2 {
+      margin-top: 0;
+      color: #ff7979;
+    }
+    #add-word {
+      display: flex;
+      margin-top: 8px;
+    }
+    #add-word input[type="text"] {
+      flex: 1;
+      font-size: 1.1rem;
+      padding: 6px 8px;
+      border: 2px solid #ff7979;
+      border-radius: 6px 0 0 6px;
+      outline: none;
+    }
+    #add-word button {
+      background: #ff7979;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 6px 16px;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #add-word button:hover {
+      background: #d65a5a;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    li {
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 1.1rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Diccionario Ruso</h1>
+  <div id="alphabet"></div>
+
+  <div id="word-list" style="display:none;">
+    <h2 id="current-letter"></h2>
+    <ul id="words"></ul>
+    <div id="add-word">
+      <input type="text" id="new-word" placeholder="Agregar palabra" autocomplete="off" />
+      <button id="add-btn">Agregar</button>
+    </div>
+  </div>
+
+  <script>
+    // Alfabeto ruso (mayúsculas)
+    const alphabet = [
+      'А','Б','В','Г','Д','Е','Ё','Ж',
+      'З','И','Й','К','Л','М','Н','О',
+      'П','Р','С','Т','У','Ф','Х','Ц',
+      'Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я'
+    ];
+
+    const alphabetDiv = document.getElementById('alphabet');
+    const wordListDiv = document.getElementById('word-list');
+    const currentLetterH2 = document.getElementById('current-letter');
+    const wordsUl = document.getElementById('words');
+    const newWordInput = document.getElementById('new-word');
+    const addBtn = document.getElementById('add-btn');
+
+    let currentLetter = null;
+
+    // Cargar palabras guardadas en localStorage
+    function loadWords(letter) {
+      const saved = localStorage.getItem('words_' + letter);
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    // Guardar palabras en localStorage
+    function saveWords(letter, words) {
+      localStorage.setItem('words_' + letter, JSON.stringify(words));
+    }
+
+    // Mostrar palabras en la lista
+    function showWords(letter) {
+      const words = loadWords(letter);
+      wordsUl.innerHTML = '';
+      words.forEach(word => {
+        const li = document.createElement('li');
+        li.textContent = word;
+        wordsUl.appendChild(li);
+      });
+    }
+
+    // Crear botones para cada letra
+    alphabet.forEach(letter => {
+      const btn = document.createElement('button');
+      btn.textContent = letter;
+      btn.classList.add('letter-btn');
+      btn.addEventListener('click', () => {
+        currentLetter = letter;
+        currentLetterH2.textContent = `Palabras que empiezan con "${letter}"`;
+        showWords(letter);
+        wordListDiv.style.display = 'block';
+        newWordInput.value = '';
+        newWordInput.focus();
+      });
+      alphabetDiv.appendChild(btn);
+    });
+
+    // Agregar nueva palabra
+    addBtn.addEventListener('click', () => {
+      const newWord = newWordInput.value.trim();
+      if (!newWord || !currentLetter) return;
+      let words = loadWords(currentLetter);
+      if (!words.includes(newWord)) {
+        words.push(newWord);
+        saveWords(currentLetter, words);
+        showWords(currentLetter);
+        newWordInput.value = '';
+        newWordInput.focus();
+      }
+    });
+
+    // También agregar con Enter en input
+    newWordInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') addBtn.click();
+    });
+  </script>
+</body>
+</html>
